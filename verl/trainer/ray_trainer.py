@@ -596,9 +596,23 @@ class RayPPOTrainer:
             new_batch = new_batch.union(gen_batch_output)
 
             # filter group
+            # filter group
             if self.config.algorithm.online_filtering:
                 reward_tensor, reward_metrics = ray.get(self.reward_fn.compute_reward.remote(new_batch))
-                new_batch.batch["token_level_scores"] = reward_tensor
+                # new_batch.batch["token_level_scores"] = reward_tensor
+                
+                import copy
+                unlocked_batch_clone = new_batch.batch.clone(recurse=False)
+
+                unlocked_batch_clone["token_level_scores"] = reward_tensor
+
+                new_batch_proto_copy = copy.copy(new_batch)
+
+                new_batch_proto_copy.batch = unlocked_batch_clone
+
+                new_batch = new_batch_proto_copy
+                
+                
                 for k, v in reward_metrics.items():
                     all_metrics[k].extend(v)
                 filter_scores = reward_metrics[self.config.algorithm.filter_key]

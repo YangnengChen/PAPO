@@ -1,17 +1,13 @@
 data:
-  train_files: PAPOGalaxy/PAPO_ViRL39K_train
-  val_files: PAPOGalaxy/PAPO_MMK12_test
+  train_files: chamber111/VPPO_ViRL39K_train
+  val_files: chamber111/VPPO_MMK12_validation
   prompt_key: problem
   answer_key: answer
   image_key: images
-  video_key: videos
-  image_dir: null
-  video_fps: 2.0
-  max_prompt_length: 4096
+  max_prompt_length: 2048
   max_response_length: 2048
-  rollout_batch_size: 512  # equivalent to verl's data.train_batch_size
-  mini_rollout_batch_size: 128  # equivalent to verl's data.gen_batch_size
-  val_batch_size: 1024
+  rollout_batch_size: 384
+  val_batch_size: 512
   format_prompt: examples/format_prompt/math_perception.jinja
   override_chat_template: null
   shuffle: true
@@ -21,29 +17,30 @@ data:
   filter_overlong_prompts: true
 
 algorithm:
-  adv_estimator: dapo
+  adv_estimator: grpo
   disable_kl: true
   use_kl_loss: true
   kl_penalty: low_var_kl
   kl_coef: 1.0e-2
-  online_filtering: true  # dapo filter groups
-  filter_key: overall
+  online_filtering: true 
+  filter_key: accuracy
   filter_low: 0.01
-  filter_high: 0.99
+  filter_high: 0.99 
 
-  use_ori_entropy_loss: false
-  ori_entropy_loss_coef: 1.0e-5
 
 worker:
   actor:
-    global_batch_size: 128  # equivalent to verl's actor.ppo_mini_batch_size
-    micro_batch_size_per_device_for_update: 4  # equivalent to verl's actor.ppo_micro_batch_size_per_gpu
-    micro_batch_size_per_device_for_experience: 16  # equivalent to verl's rollout.log_prob_micro_batch_size_per_gpu
+    clip_ratio_low: 0.2
+    clip_ratio_high: 0.28
+    # dynamic_batching: false
+    global_batch_size: 128
+    micro_batch_size_per_device_for_update: 4
+    micro_batch_size_per_device_for_experience: 16
     max_grad_norm: 1.0
     padding_free: true
     ulysses_size: 1
     model:
-      model_path: Qwen/Qwen2.5-3B-Instruct
+      model_path: Qwen/Qwen2.5-7B-Instruct
       enable_gradient_checkpointing: true
       trust_remote_code: true
       freeze_vision_tower: false
@@ -65,17 +62,17 @@ worker:
     n: 5
     temperature: 1.0
     top_p: 0.99
-    limit_images: 0
     gpu_memory_utilization: 0.6
     enforce_eager: false
     enable_chunked_prefill: false
     tensor_parallel_size: 2
-    disable_tqdm: false
+    limit_images: 0
     val_override_config:
       temperature: 1.0
       n: 8 # avg acc @ 8
 
   ref:
+    # dynamic_batching: false
     fsdp:
       torch_dtype: bf16
       enable_full_shard: true
@@ -86,17 +83,17 @@ worker:
 
   reward:
     reward_type: batch
-    reward_function: examples/reward_function/math.py:compute_score
+    reward_function: examples/reward_function/math.py
 
 trainer:
+  max_try_make_batch: -1
   total_epochs: 15
   max_steps: null
   project_name: easy_r1
-  experiment_name: qwen2_5_3b_dapo
+  experiment_name: qwen2_5_3b_math_grpo
   logger: ["console", "wandb"]
   nnodes: 1
-  n_gpus_per_node: 8
-  max_try_make_batch: 20  # -1 means no limit
+  n_gpus_per_node: 2
   val_freq: 5  # -1 to disable
   val_before_train: true
   val_only: false
@@ -106,4 +103,3 @@ trainer:
   save_model_only: false
   save_checkpoint_path: null
   load_checkpoint_path: null
-  save_best_checkpoint: true

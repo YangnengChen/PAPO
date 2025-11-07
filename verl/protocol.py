@@ -81,20 +81,35 @@ def unpad_dataproto(data: "DataProto", pad_size: int) -> "DataProto":
     return data
 
 
+# def union_tensor_dict(tensor_dict1: TensorDict, tensor_dict2: TensorDict) -> TensorDict:
+#     """Union two tensordicts."""
+#     if tensor_dict1.batch_size != tensor_dict2.batch_size:
+#         raise ValueError(
+#             f"Two tensor dict must have identical batch size. Got {tensor_dict1.batch_size} and {tensor_dict2.batch_size}"
+#         )
+
+#     for key in tensor_dict2.keys():
+#         if key in tensor_dict1 and not torch.equal(tensor_dict1[key], tensor_dict2[key]):
+#             raise ValueError(f"Key already exists: {key}.")
+
+#         tensor_dict1[key] = tensor_dict2[key]
+
+#     return tensor_dict1
+
 def union_tensor_dict(tensor_dict1: TensorDict, tensor_dict2: TensorDict) -> TensorDict:
-    """Union two tensordicts."""
+    """
+    通过创建一个新的 TensorDict 来安全地合并两个 TensorDict。
+    """
     if tensor_dict1.batch_size != tensor_dict2.batch_size:
-        raise ValueError(
-            f"Two tensor dict must have identical batch size. Got {tensor_dict1.batch_size} and {tensor_dict2.batch_size}"
-        )
+        raise ValueError("Batch sizes must be identical.")
 
     for key in tensor_dict2.keys():
         if key in tensor_dict1 and not torch.equal(tensor_dict1[key], tensor_dict2[key]):
-            raise ValueError(f"Key already exists: {key}.")
+            raise ValueError(f"Key '{key}' exists with different values.")
 
-        tensor_dict1[key] = tensor_dict2[key]
-
-    return tensor_dict1
+    new_td = tensor_dict1.clone(recurse=False) # 使用 recurse=False 进行浅克隆
+    new_td.update(tensor_dict2)
+    return new_td
 
 
 def union_numpy_dict(tensor_dict1: Dict[str, NDArray], tensor_dict2: Dict[str, NDArray]) -> Dict[str, NDArray]:
