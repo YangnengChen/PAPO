@@ -47,3 +47,70 @@ def compute_score(reward_inputs: List[Dict[str, Any]], format_weight: float = 0.
         )
 
     return scores
+
+def compute_score_wo_format(reward_inputs: List[Dict[str, Any]]) -> List[Dict[str, float]]:
+    if not isinstance(reward_inputs, list):
+        raise ValueError("Please use `reward_type=batch` for math reward function.")
+
+    scores = []
+    for reward_input in reward_inputs:
+        response = re.sub(r"\s*(<|>|/)\s*", r"\1", reward_input["response"])  # handle qwen2.5vl-32b format
+        accuracy_score = accuracy_reward(response, reward_input["ground_truth"])
+        scores.append(
+            {
+                "overall": accuracy_score,
+                "accuracy": accuracy_score,
+            }
+        )
+
+    return scores
+
+import re
+import math
+from typing import List, Dict, Any
+
+
+def compute_score_wo_format_length_limit(
+    reward_inputs: List[Dict[str, Any]],
+    L_SAFE_STATIC: int = 512,    
+    L_MAX_HARD_LIMIT: int = 2048   
+) -> List[Dict[str, float]]:
+    """
+    """
+    if not isinstance(reward_inputs, list):
+        raise ValueError("Please use `reward_type=batch` for math reward function.")
+
+    if L_SAFE_STATIC >= L_MAX_HARD_LIMIT:
+        raise ValueError(f"L_SAFE_STATIC ({L_SAFE_STATIC}) >= L_MAX_HARD_LIMIT ({L_MAX_HARD_LIMIT})")
+        
+    denominator = L_MAX_HARD_LIMIT - L_SAFE_STATIC
+
+    scores = []
+
+    for reward_input in reward_inputs:
+        original_response = reward_input["response"]
+        
+        response_length = reward_input['response_length']
+
+        processed_response = re.sub(r"\s*(<|>|/)\s*", r"\1", original_response)
+        accuracy_score = accuracy_reward(processed_response, reward_input["ground_truth"])
+
+        R_length = 0.0
+
+        if response_length <= L_SAFE_STATIC:
+            R_length = 0.0
+        else:
+            
+            penalty = (L_SAFE_STATIC - response_length) / denominator
+            
+            R_length = max(penalty, -1.0)
+            
+        overall_score = accuracy_score + R_length
+
+        scores.append({
+            "overall": overall_score,
+            "accuracy": accuracy_score,
+            "R_length": R_length
+        })
+
+    return scores

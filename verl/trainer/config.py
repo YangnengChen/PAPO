@@ -176,6 +176,8 @@ class TrainerConfig:
     """load checkpoint path"""
     save_best_checkpoint: bool = False
     """save best checkpoint"""
+    find_last_checkpoint: bool = True
+    """automatically find the last checkpoint in the save checkpoint path to resume training"""
 
     def post_init(self):
         if self.save_checkpoint_path is None:

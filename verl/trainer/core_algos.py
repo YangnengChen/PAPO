@@ -21,7 +21,7 @@ implement PPO
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from enum import Enum
-from typing import TYPE_CHECKING, Dict, Literal, Tuple
+from typing import TYPE_CHECKING, Dict, Literal, Tuple, Optional
 
 import numpy as np
 import torch
@@ -445,6 +445,82 @@ def average_loss(
         raise NotImplementedError(f"Unknown mode: {mode}.")
 
 
+# def compute_policy_loss(
+#     old_log_probs: torch.Tensor,
+#     log_probs: torch.Tensor,
+#     advantages: torch.Tensor,
+#     response_mask: torch.Tensor,
+#     clip_ratio_low: float,
+#     clip_ratio_high: float,
+#     clip_ratio_dual: float,
+#     loss_avg_mode: Literal["token", "seq"],
+# ) -> Tuple[torch.Tensor, Dict[str, torch.Tensor]]:
+#     """Compute the clipped policy objective and related metrics for PPO.
+
+#     Adapted from https://github.com/huggingface/trl/blob/v0.15.0/trl/trainer/ppo_trainer.py#L568
+
+#     Args:
+#         old_log_prob: `(torch.Tensor)`
+#             shape: (bs, response_length)
+#         log_prob: `(torch.Tensor)`
+#             shape: (bs, response_length)
+#         advantages: `(torch.Tensor)`
+#             shape: (bs, response_length)
+#         response_mask: `(torch.Tensor)`
+#             shape: (bs, response_length)
+#         clip_ratio_low: (float)
+#             The lower clip range used in PPO. See https://arxiv.org/abs/1707.06347
+#         clip_ratio_high: (float)
+#             The higher clip range used in DAPO. See https://arxiv.org/pdf/2503.14476
+#         clip_ratio_dual: (float)
+#             The dual clip range used in Dual-clip PPO. See https://arxiv.org/pdf/1912.09729
+#         loss_avg_mode: (Literal["token", "seq"])
+#             "token": average the loss in the whole batch
+#             "seq": average the loss in each sequence then average the mean of the means
+
+#     Returns:
+#         pg_loss: `a scalar torch.Tensor`
+#             policy gradient loss computed via PPO
+#         pg_clipfrac_higher: (float)
+#             a float number indicating the fraction of policy gradient loss being clipped to a higher value
+#         pg_clipfrac_lower: (float)
+#             a float number indicating the fraction of policy gradient loss being clipped to a lower value
+#         ppo_kl: (float)
+#             a float number indicating the mean KL divergence between the old policy and the new policy
+#         entropy_loss: (float)
+#             a float number indicating the mean entropy loss
+
+#     """
+#     negative_approx_kl = log_probs - old_log_probs
+#     # clamp negative_approx_kl to avoid nan kld
+#     negative_approx_kl = torch.clamp(negative_approx_kl, -20.0, 20.0)
+#     ratio = torch.exp(negative_approx_kl)
+#     # clamp the ratio before exp to avoid nan grad
+#     # see: https://github.com/pytorch/pytorch/issues/10729
+#     clipped_ratio = torch.exp(
+#         torch.clamp(negative_approx_kl, np.log(1.0 - clip_ratio_low), np.log(1.0 + clip_ratio_high))
+#     )
+
+#     # pg metrics
+#     metrics = {"ppo_kl": -negative_approx_kl}
+#     # use negative log probs as an estimator of entropy loss
+#     metrics["entropy_loss"] = average_loss(-log_probs, response_mask, mode=loss_avg_mode)
+
+#     pg_loss = -advantages * ratio  # -ratio * A
+#     pg_loss2 = -advantages * clipped_ratio  # -clip(ratio, 1-clip_low, 1+clip_high) * A
+#     pg_loss3 = -advantages * clip_ratio_dual  # -clip_dual * A
+
+#     clipped_pg_loss_higher = torch.max(pg_loss, pg_loss2)  # clip if pg_loss < pg_loss2
+#     metrics["pg_clipfrac_higher"] = (pg_loss < pg_loss2).float()
+#     clipped_pg_loss_lower = torch.min(clipped_pg_loss_higher, pg_loss3)  # clip if pg_loss > pg_loss3 and adv < 0
+#     final_pg_loss = torch.where(advantages < 0, clipped_pg_loss_lower, clipped_pg_loss_higher)
+#     metrics["pg_clipfrac_lower"] = (clipped_pg_loss_higher > pg_loss3).float() * (advantages < 0).float()
+
+#     final_pg_loss = average_loss(final_pg_loss, response_mask, mode=loss_avg_mode)
+#     metrics = {k: VF.masked_mean(v, response_mask).detach().item() for k, v in metrics.items()}
+#     return final_pg_loss, metrics
+
+
 def compute_policy_loss(
     old_log_probs: torch.Tensor,
     log_probs: torch.Tensor,
@@ -454,7 +530,9 @@ def compute_policy_loss(
     clip_ratio_high: float,
     clip_ratio_dual: float,
     loss_avg_mode: Literal["token", "seq"],
-) -> Tuple[torch.Tensor, Dict[str, torch.Tensor]]:
+    entropy: torch.Tensor,
+    loss_token_mask: Optional[torch.Tensor] = None,
+) -> Tuple[torch.Tensor, Dict[str, float]]:
     """Compute the clipped policy objective and related metrics for PPO.
 
     Adapted from https://github.com/huggingface/trl/blob/v0.15.0/trl/trainer/ppo_trainer.py#L568
@@ -504,7 +582,7 @@ def compute_policy_loss(
     # pg metrics
     metrics = {"ppo_kl": -negative_approx_kl}
     # use negative log probs as an estimator of entropy loss
-    metrics["entropy_loss"] = average_loss(-log_probs, response_mask, mode=loss_avg_mode)
+    metrics["entropy_loss"] = average_loss(entropy, response_mask, mode=loss_avg_mode)
 
     pg_loss = -advantages * ratio  # -ratio * A
     pg_loss2 = -advantages * clipped_ratio  # -clip(ratio, 1-clip_low, 1+clip_high) * A
@@ -515,6 +593,10 @@ def compute_policy_loss(
     clipped_pg_loss_lower = torch.min(clipped_pg_loss_higher, pg_loss3)  # clip if pg_loss > pg_loss3 and adv < 0
     final_pg_loss = torch.where(advantages < 0, clipped_pg_loss_lower, clipped_pg_loss_higher)
     metrics["pg_clipfrac_lower"] = (clipped_pg_loss_higher > pg_loss3).float() * (advantages < 0).float()
+
+    if loss_token_mask is not None:
+        detached_loss_token_mask = loss_token_mask.detach()
+        final_pg_loss = final_pg_loss * detached_loss_token_mask
 
     final_pg_loss = average_loss(final_pg_loss, response_mask, mode=loss_avg_mode)
     metrics = {k: VF.masked_mean(v, response_mask).detach().item() for k, v in metrics.items()}

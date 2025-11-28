@@ -133,6 +133,20 @@ class ActorConfig:
     # for sft loss
     use_sft_loss: bool = False
     sft_loss_coef: float = 1e-3
+    
+    use_vppo_on_entropy: bool = False
+    top_p_entropy_tokens: float = 0.2
+    """use vppo based on entropy"""
+
+    use_vppo_on_perception: bool = False
+    top_p_perception_tokens: float = 0.2
+    """use vppo based on perception"""
+    
+    
+    use_entopy_advantage_shaping: bool = False
+    entropy_alpha: float = 0.4
+    entropy_kappa: float = 2.0
+    """use entropy advantage shaping for training"""
 
 
 @dataclass
