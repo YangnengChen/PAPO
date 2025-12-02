@@ -71,6 +71,6 @@ CUDA_VISIBLE_DEVICES=${CUDA_IDS} python3 -m verl.trainer.main \
     worker.actor.use_entopy_advantage_shaping=${use_entopy_advantage_shaping} \
     worker.actor.entropy_alpha=${entropy_alpha} \
     worker.actor.entropy_kappa=${entropy_kappa} \
-    worker.actor.use_sft_loss=${use_sft_loss} \
-    worker.actor.sft_loss_coef=${sft_loss_coef} \
+    algorithm.use_sft_loss=${use_sft_loss} \
+    algorithm.sft_loss_coef=${sft_loss_coef} \
     
