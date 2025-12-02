@@ -16,3 +16,8 @@ __pycache__/
 *.h5
 
 .vscode
+
+*.pt
+PAPO.egg-info/*
+wandb/*
+checkpoints/*

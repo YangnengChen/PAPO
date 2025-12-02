@@ -4,9 +4,9 @@ set -x
 
 export PYTHONUNBUFFERED=1
 export RAY_memory_usage_threshold=0.98
-
-CUDA_IDS=0,1,2,3,4,5,6,7
-N_GPU=8
+export NCCL_SOCKET_IFNAME=lo
+CUDA_IDS=2,3
+N_GPU=2
 
 MODEL_PATH=Qwen/Qwen2.5-VL-7B-Instruct
 
@@ -25,15 +25,22 @@ entropy_alpha=0.4
 entropy_kappa=2.0
 
 
-EXP_NAME="qwen2_5_vl_7b__dapo_clip_high_${clip_ratio_high}__ep${TOTAL_EPOCHES}_rb${ROLLOUT_BATCH_SIZE}_gb${GLOBAL_BATCH_SIZE}_mini${MINI_ROLLOUT_BATCH_SIZE}_rollout${ROLLOUT}_from_vppo_length_limit_${L_SAFE_STATIC}_use_entopy_advantage_shaping_${use_entopy_advantage_shaping}_alpha_${entropy_alpha}_kappa_${entropy_kappa}"
+
+use_sft_loss=true
+sft_loss_coef=0.06
+# EXP_NAME="qwen2_5_vl_7b__dapo_clip_high_${clip_ratio_high}__ep${TOTAL_EPOCHES}_rb${ROLLOUT_BATCH_SIZE}_gb${GLOBAL_BATCH_SIZE}_mini${MINI_ROLLOUT_BATCH_SIZE}_rollout${ROLLOUT}_from_vppo_length_limit_${L_SAFE_STATIC}_use_entopy_advantage_shaping_${use_entopy_advantage_shaping}_alpha_${entropy_alpha}_kappa_${entropy_kappa}"
+
+# EXP_NAME="qwen2_5_vl_7b__dapo_clip_high_${clip_ratio_high}__ep${TOTAL_EPOCHES}_rb${ROLLOUT_BATCH_SIZE}_gb${GLOBAL_BATCH_SIZE}_mini${MINI_ROLLOUT_BATCH_SIZE}_rollout${ROLLOUT}_from_vppo_use_entopy_advantage_shaping_${use_entopy_advantage_shaping}_alpha_${entropy_alpha}_kappa_${entropy_kappa}"
+
+EXP_NAME="qwen2_5_vl_7b__dapo_clip_high_${clip_ratio_high}__ep${TOTAL_EPOCHES}_rb${ROLLOUT_BATCH_SIZE}_gb${GLOBAL_BATCH_SIZE}_mini${MINI_ROLLOUT_BATCH_SIZE}_rollout${ROLLOUT}_from_vppo_EBA_${use_entopy_advantage_shaping}_alpha_${entropy_alpha}_kappa_${entropy_kappa}_SFT_${sft_loss_coef}"
 
 CONGI_FILE="examples/configs/config_vppo.yaml"
 TRAIN_FILE="PAPOGalaxy/PAPO_ViRL39K_train"
 VAL_FILE="PAPOGalaxy/PAPO_MMK12_test"
 
 FORMAT_PROMPT="examples/format_prompt/math_perception.jinja"
-# REWARD_FUNCTION="examples/reward_function/math.py:compute_score_wo_format"
-REWARD_FUNCTION="examples/reward_function/math.py:compute_score_wo_format_length_limit"
+REWARD_FUNCTION="examples/reward_function/math.py:compute_score_wo_format"
+# REWARD_FUNCTION="examples/reward_function/math.py:compute_score_wo_format_length_limit"
 
 
 CUDA_VISIBLE_DEVICES=${CUDA_IDS} python3 -m verl.trainer.main \
@@ -59,9 +66,11 @@ CUDA_VISIBLE_DEVICES=${CUDA_IDS} python3 -m verl.trainer.main \
     worker.reward.reward_function=${REWARD_FUNCTION} \
     data.max_prompt_length=${MAX_PROMPT_LENGTH} \
     worker.rollout.n=${ROLLOUT} \
-    worker.actor.micro_batch_size_per_device_for_update=2 \
-    worker.actor.micro_batch_size_per_device_for_experience=8 \
-    worker.reward.reward_function_kwargs.L_SAFE_STATIC=${L_SAFE_STATIC} \
+    worker.actor.micro_batch_size_per_device_for_update=4 \
+    worker.actor.micro_batch_size_per_device_for_experience=16 \
     worker.actor.use_entopy_advantage_shaping=${use_entopy_advantage_shaping} \
     worker.actor.entropy_alpha=${entropy_alpha} \
     worker.actor.entropy_kappa=${entropy_kappa} \
+    algorithm.use_sft_loss=${use_sft_loss} \
+    algorithm.sft_loss_coef=${sft_loss_coef} \
+    
