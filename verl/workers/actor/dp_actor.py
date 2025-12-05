@@ -391,8 +391,8 @@ class DataParallelPPOActor(BasePPOActor):
                     output = self._forward_micro_batch(model_inputs, temperature=temperature)
                     log_probs = output['log_probs']
                     entropy = output['entropy']
-                    # entropy_loss = -VF.masked_mean(log_probs, response_mask)  # estimator of entropy loss
-                    entropy_loss = average_loss(entropy, response_mask, mode=self.config.loss_avg_mode)
+                    entropy_loss = -VF.masked_mean(log_probs, response_mask)  # estimator of entropy loss
+                    # entropy_loss = average_loss(entropy, response_mask, mode=self.config.loss_avg_mode)
                     
                     loss_token_mask = None # Default to None
 

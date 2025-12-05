@@ -39,7 +39,7 @@ top_p_perception_tokens=0.4
 
 # EXP_NAME="qwen2_5_vl_7b__dapo_clip_high_${clip_ratio_high}__ep${TOTAL_EPOCHES}_rb${ROLLOUT_BATCH_SIZE}_gb${GLOBAL_BATCH_SIZE}_mini${MINI_ROLLOUT_BATCH_SIZE}_rollout${ROLLOUT}_from_vppo_use_entopy_advantage_shaping_${use_entopy_advantage_shaping}_alpha_${entropy_alpha}_kappa_${entropy_kappa}"
 
-EXP_NAME="qwen2_5_vl_7b__dapo_clip_high_${clip_ratio_high}__ep${TOTAL_EPOCHES}_rb${ROLLOUT_BATCH_SIZE}_gb${GLOBAL_BATCH_SIZE}_mini${MINI_ROLLOUT_BATCH_SIZE}_rollout${ROLLOUT}_from_vppo_EBA_${use_entopy_advantage_shaping}_alpha_${entropy_alpha}_kappa_${entropy_kappa}_SFT_${sft_loss_coef}_"
+EXP_NAME="qwen2_5_vl_7b__dapo_clip_high_${clip_ratio_high}_from_vppo_EBA_${use_entopy_advantage_shaping}_alpha_${entropy_alpha}_kappa_${entropy_kappa}_SFT_${sft_loss_coef}_perc${top_p_perception_tokens}_entropy_${top_p_entropy_tokens}"
 
 CONGI_FILE="examples/configs/config_vppo.yaml"
 TRAIN_FILE="PAPOGalaxy/PAPO_ViRL39K_train"

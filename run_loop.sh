@@ -1,11 +1,11 @@
 #!/bin/bash
 
-TARGET_SCRIPT="/home/eda/cyn/PAPO/examples/papo_dapo/qwen2_5_vl_7b_dapo_ours.sh"
+TARGET_SCRIPT="/home/eda/cyn/PAPO/examples/papo_dapo/qwen2_5_vl_7b_dapo_ours_entropy_perc.sh"
 DELAY=3
 
-PID_TO_WAIT_FOR="3211924" 
+PID_TO_WAIT_FOR="1503892" 
 
-WAIT_INTERVAL=10
+WAIT_INTERVAL=5
 
 if [ -n "$PID_TO_WAIT_FOR" ]; then
     echo "-----------------------------------------------------"
