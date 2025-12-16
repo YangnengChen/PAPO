@@ -43,7 +43,11 @@ kl_kappa=2.0
 
 # EXP_NAME="qwen2_5_vl_7b__dapo_clip_high_${clip_ratio_high}__ep${TOTAL_EPOCHES}_rb${ROLLOUT_BATCH_SIZE}_gb${GLOBAL_BATCH_SIZE}_mini${MINI_ROLLOUT_BATCH_SIZE}_rollout${ROLLOUT}_from_vppo_use_entopy_advantage_shaping_${use_entopy_advantage_shaping}_alpha_${entropy_alpha}_kappa_${entropy_kappa}"
 
+<<<<<<< HEAD
 EXP_NAME="qwen2_5_vl_7b__dapo_clip_high_${clip_ratio_high}_from_vppo_EBA_${use_entopy_advantage_shaping}_alpha_${entropy_alpha}_kappa_${entropy_kappa}_SFT_${sft_loss_coef}_perc${top_p_perception_tokens}_entropy_${top_p_entropy_tokens}_VDA_${use_VD_advantage_shaping}_alpha_${kl_alpha}_kappa_${kl_kappa}"
+=======
+EXP_NAME="qwen2_5_vl_7b__dapo_clip_high_${clip_ratio_high}_from_vppo_EBA_${use_entopy_advantage_shaping}_alpha_${entropy_alpha}_kappa_${entropy_kappa}_SFT_${sft_loss_coef}_perc${top_p_perception_tokens}_entropy_${top_p_entropy_tokens}"
+>>>>>>> cfcd83648a2e9f2f4c401a7186c22c0e0f2be7b0
 
 CONGI_FILE="examples/configs/config_vppo.yaml"
 TRAIN_FILE="PAPOGalaxy/PAPO_ViRL39K_train"
@@ -73,6 +77,7 @@ CUDA_VISIBLE_DEVICES=${CUDA_IDS} python3 -m verl.trainer.main \
     algorithm.filter_high=0.99 \
     trainer.experiment_name=${EXP_NAME} \
     trainer.n_gpus_per_node=${N_GPU} \
+<<<<<<< HEAD
     trainer.total_epochs=2 \
     worker.reward.reward_function=${REWARD_FUNCTION} \
     data.max_prompt_length=${MAX_PROMPT_LENGTH} \
@@ -85,6 +90,17 @@ CUDA_VISIBLE_DEVICES=${CUDA_IDS} python3 -m verl.trainer.main \
     worker.actor.use_VD_advantage_shaping=${use_VD_advantage_shaping} \
     worker.actor.kl_alpha=${kl_alpha} \
     worker.actor.kl_kappa=${kl_kappa} \
+=======
+    trainer.total_epochs=${TOTAL_EPOCHES} \
+    worker.reward.reward_function=${REWARD_FUNCTION} \
+    data.max_prompt_length=${MAX_PROMPT_LENGTH} \
+    worker.rollout.n=${ROLLOUT} \
+    worker.actor.micro_batch_size_per_device_for_update=4 \
+    worker.actor.micro_batch_size_per_device_for_experience=16 \
+    worker.actor.use_entopy_advantage_shaping=${use_entopy_advantage_shaping} \
+    worker.actor.entropy_alpha=${entropy_alpha} \
+    worker.actor.entropy_kappa=${entropy_kappa} \
+>>>>>>> cfcd83648a2e9f2f4c401a7186c22c0e0f2be7b0
     algorithm.use_sft_loss=${use_sft_loss} \
     algorithm.sft_loss_coef=${sft_loss_coef} \
     algorithm.use_vppo_on_perception=${use_vppo_on_perception} \

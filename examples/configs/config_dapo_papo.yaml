@@ -27,7 +27,7 @@ algorithm:
   kl_penalty: low_var_kl
   kl_coef: 1.0e-2
   online_filtering: true  # dapo filter groups
-  filter_key: overall
+  filter_key: accuracy
   filter_low: 0.01
   filter_high: 0.99
 
@@ -39,7 +39,7 @@ algorithm:
   incorrect_weighting: 0.1
   aug_config:
     patch_size: 14
-    black_prob: 0.6
+    black_prob: 0.5
   kl_prcp_schedule: fixed
   kl_prcp_schedule_args:
     start_value: 1.0e-2

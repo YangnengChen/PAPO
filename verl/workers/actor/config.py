@@ -154,6 +154,14 @@ class ActorConfig:
     """use entropy advantage shaping for training"""
 
 
+    use_vppo_on_entropy: bool = False
+    top_p_entropy_tokens: float = 0.2
+    """use vppo based on entropy"""
+
+    use_vppo_on_perception: bool = False
+    top_p_perception_tokens: float = 0.2
+    """use vppo based on perception"""
+
 
 @dataclass
 class RefConfig:

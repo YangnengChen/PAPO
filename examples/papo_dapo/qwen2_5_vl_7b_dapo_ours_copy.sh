@@ -27,7 +27,18 @@ entropy_kappa=2.0
 
 
 use_sft_loss=true
+<<<<<<< HEAD
 sft_loss_coef=0.10
+=======
+sft_loss_coef=0.08
+
+use_vppo_on_entropy=true
+top_p_entropy_tokens=0.2
+use_vppo_on_perception=true
+top_p_perception_tokens=0.4
+
+
+>>>>>>> cfcd83648a2e9f2f4c401a7186c22c0e0f2be7b0
 # EXP_NAME="qwen2_5_vl_7b__dapo_clip_high_${clip_ratio_high}__ep${TOTAL_EPOCHES}_rb${ROLLOUT_BATCH_SIZE}_gb${GLOBAL_BATCH_SIZE}_mini${MINI_ROLLOUT_BATCH_SIZE}_rollout${ROLLOUT}_from_vppo_length_limit_${L_SAFE_STATIC}_use_entopy_advantage_shaping_${use_entopy_advantage_shaping}_alpha_${entropy_alpha}_kappa_${entropy_kappa}"
 
 # EXP_NAME="qwen2_5_vl_7b__dapo_clip_high_${clip_ratio_high}__ep${TOTAL_EPOCHES}_rb${ROLLOUT_BATCH_SIZE}_gb${GLOBAL_BATCH_SIZE}_mini${MINI_ROLLOUT_BATCH_SIZE}_rollout${ROLLOUT}_from_vppo_use_entopy_advantage_shaping_${use_entopy_advantage_shaping}_alpha_${entropy_alpha}_kappa_${entropy_kappa}"
@@ -66,11 +77,24 @@ CUDA_VISIBLE_DEVICES=${CUDA_IDS} python3 -m verl.trainer.main \
     worker.reward.reward_function=${REWARD_FUNCTION} \
     data.max_prompt_length=${MAX_PROMPT_LENGTH} \
     worker.rollout.n=${ROLLOUT} \
+<<<<<<< HEAD
     worker.actor.micro_batch_size_per_device_for_update=2 \
     worker.actor.micro_batch_size_per_device_for_experience=8 \
+=======
+    worker.actor.micro_batch_size_per_device_for_update=4 \
+    worker.actor.micro_batch_size_per_device_for_experience=16 \
+>>>>>>> cfcd83648a2e9f2f4c401a7186c22c0e0f2be7b0
     worker.actor.use_entopy_advantage_shaping=${use_entopy_advantage_shaping} \
     worker.actor.entropy_alpha=${entropy_alpha} \
     worker.actor.entropy_kappa=${entropy_kappa} \
     algorithm.use_sft_loss=${use_sft_loss} \
     algorithm.sft_loss_coef=${sft_loss_coef} \
+<<<<<<< HEAD
+=======
+    algorithm.use_vppo_on_perception=${use_vppo_on_perception} \
+    algorithm.use_vppo_on_entropy=${use_vppo_on_entropy} \
+    algorithm.top_p_perception_tokens=${top_p_perception_tokens} \
+    algorithm.top_p_entropy_tokens=${top_p_entropy_tokens} \
+    algorithm.kl_prcp_coef=0.0
+>>>>>>> cfcd83648a2e9f2f4c401a7186c22c0e0f2be7b0
     
