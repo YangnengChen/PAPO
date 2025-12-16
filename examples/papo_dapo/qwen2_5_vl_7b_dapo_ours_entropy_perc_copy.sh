@@ -27,12 +27,19 @@ entropy_kappa=2.0
 
 
 use_sft_loss=true
-sft_loss_coef=0.06
+sft_loss_coef=0.10
+
+use_vppo_on_entropy=true
+top_p_entropy_tokens=0.4
+use_vppo_on_perception=true
+top_p_perception_tokens=0.4
+
+
 # EXP_NAME="qwen2_5_vl_7b__dapo_clip_high_${clip_ratio_high}__ep${TOTAL_EPOCHES}_rb${ROLLOUT_BATCH_SIZE}_gb${GLOBAL_BATCH_SIZE}_mini${MINI_ROLLOUT_BATCH_SIZE}_rollout${ROLLOUT}_from_vppo_length_limit_${L_SAFE_STATIC}_use_entopy_advantage_shaping_${use_entopy_advantage_shaping}_alpha_${entropy_alpha}_kappa_${entropy_kappa}"
 
 # EXP_NAME="qwen2_5_vl_7b__dapo_clip_high_${clip_ratio_high}__ep${TOTAL_EPOCHES}_rb${ROLLOUT_BATCH_SIZE}_gb${GLOBAL_BATCH_SIZE}_mini${MINI_ROLLOUT_BATCH_SIZE}_rollout${ROLLOUT}_from_vppo_use_entopy_advantage_shaping_${use_entopy_advantage_shaping}_alpha_${entropy_alpha}_kappa_${entropy_kappa}"
 
-EXP_NAME="qwen2_5_vl_7b__dapo_clip_high_${clip_ratio_high}__ep${TOTAL_EPOCHES}_rb${ROLLOUT_BATCH_SIZE}_gb${GLOBAL_BATCH_SIZE}_mini${MINI_ROLLOUT_BATCH_SIZE}_rollout${ROLLOUT}_from_vppo_EBA_${use_entopy_advantage_shaping}_SFT_${sft_loss_coef}"
+EXP_NAME="qwen2_5_vl_7b__dapo_clip_high_${clip_ratio_high}_from_vppo_EBA_${use_entopy_advantage_shaping}_alpha_${entropy_alpha}_kappa_${entropy_kappa}_SFT_${sft_loss_coef}_perc${top_p_perception_tokens}_entropy_${top_p_entropy_tokens}"
 
 CONGI_FILE="examples/configs/config_vppo.yaml"
 TRAIN_FILE="PAPOGalaxy/PAPO_ViRL39K_train"
@@ -62,7 +69,7 @@ CUDA_VISIBLE_DEVICES=${CUDA_IDS} python3 -m verl.trainer.main \
     algorithm.filter_high=0.99 \
     trainer.experiment_name=${EXP_NAME} \
     trainer.n_gpus_per_node=${N_GPU} \
-    trainer.total_epochs=${TOTAL_EPOCHES} \
+    trainer.total_epochs=2 \
     worker.reward.reward_function=${REWARD_FUNCTION} \
     data.max_prompt_length=${MAX_PROMPT_LENGTH} \
     worker.rollout.n=${ROLLOUT} \
@@ -73,4 +80,9 @@ CUDA_VISIBLE_DEVICES=${CUDA_IDS} python3 -m verl.trainer.main \
     worker.actor.entropy_kappa=${entropy_kappa} \
     algorithm.use_sft_loss=${use_sft_loss} \
     algorithm.sft_loss_coef=${sft_loss_coef} \
+    algorithm.use_vppo_on_perception=${use_vppo_on_perception} \
+    algorithm.use_vppo_on_entropy=${use_vppo_on_entropy} \
+    algorithm.top_p_perception_tokens=${top_p_perception_tokens} \
+    algorithm.top_p_entropy_tokens=${top_p_entropy_tokens} \
+    algorithm.kl_prcp_coef=0.0
     

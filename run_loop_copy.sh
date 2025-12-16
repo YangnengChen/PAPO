@@ -1,9 +1,9 @@
 #!/bin/bash
 
-TARGET_SCRIPT="/home/hector6/PAPO/examples/papo_dapo/qwen2_5_vl_7b_dapo_ours_entropy_perc.sh"
+TARGET_SCRIPT="/home/hector6/PAPO/examples/papo_dapo/qwen2_5_vl_7b_dapo_ours_entropy_perc_copy.sh"
 DELAY=3
 
-PID_TO_WAIT_FOR="2547542" 
+PID_TO_WAIT_FOR="2064825" 
 
 WAIT_INTERVAL=3
 

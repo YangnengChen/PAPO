@@ -15,4 +15,10 @@ __pycache__/
 *.safetensors
 *.h5
 
+
+*.txt
 .vscode
+
+wandb
+
+checkpoints

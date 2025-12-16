@@ -391,8 +391,8 @@ class DataParallelPPOActor(BasePPOActor):
                     output = self._forward_micro_batch(model_inputs, temperature=temperature)
                     log_probs = output['log_probs']
                     entropy = output['entropy']
-                    # entropy_loss = -VF.masked_mean(log_probs, response_mask)  # estimator of entropy loss
-                    entropy_loss = average_loss(entropy, response_mask, mode=self.config.loss_avg_mode)
+                    entropy_loss = -VF.masked_mean(log_probs, response_mask)  # estimator of entropy loss
+                    # entropy_loss = average_loss(entropy, response_mask, mode=self.config.loss_avg_mode)
                     
                     loss_token_mask = None # Default to None
 
@@ -558,6 +558,14 @@ class DataParallelPPOActor(BasePPOActor):
                     if self.config.use_entopy_advantage_shaping:
                         
                         advantages += advantages * torch.min(self.config.entropy_alpha * entropy.detach(), advantages.abs() / self.config.entropy_kappa)
+                        
+                        
+                    if self.config.use_VD_advantage_shaping:
+                        aug_log_probs = model_inputs["aug_log_probs"]
+                        log_probs_diff = (aug_log_probs - old_log_probs).clamp(-20.0, 20.0)
+                        low_var_kl = (log_probs_diff.exp() - log_probs_diff - 1).contiguous()
+                        low_var_kl = torch.clamp(low_var_kl, min=0.0, max=5.0)
+                        advantages += advantages * torch.min(self.config.kl_alpha * low_var_kl.detach(), advantages.abs() / self.config.kl_kappa)
 
                     pg_loss, pg_metrics = compute_policy_loss(
                         old_log_probs=old_log_probs,

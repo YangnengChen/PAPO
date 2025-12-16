@@ -20,20 +20,27 @@ ROLLOUT=8
 clip_ratio_high=0.28
 
 L_SAFE_STATIC=800
-use_entopy_advantage_shaping=true
+use_entopy_advantage_shaping=false
 entropy_alpha=0.4
 entropy_kappa=2.0
 
 
-EXP_NAME="qwen2_5_vl_7b__dapo_clip_high_${clip_ratio_high}__ep${TOTAL_EPOCHES}_rb${ROLLOUT_BATCH_SIZE}_gb${GLOBAL_BATCH_SIZE}_mini${MINI_ROLLOUT_BATCH_SIZE}_rollout${ROLLOUT}_from_vppo_length_limit_${L_SAFE_STATIC}_use_entopy_advantage_shaping_${use_entopy_advantage_shaping}_alpha_${entropy_alpha}_kappa_${entropy_kappa}"
+
+use_sft_loss=true
+sft_loss_coef=0.10
+# EXP_NAME="qwen2_5_vl_7b__dapo_clip_high_${clip_ratio_high}__ep${TOTAL_EPOCHES}_rb${ROLLOUT_BATCH_SIZE}_gb${GLOBAL_BATCH_SIZE}_mini${MINI_ROLLOUT_BATCH_SIZE}_rollout${ROLLOUT}_from_vppo_length_limit_${L_SAFE_STATIC}_use_entopy_advantage_shaping_${use_entopy_advantage_shaping}_alpha_${entropy_alpha}_kappa_${entropy_kappa}"
+
+# EXP_NAME="qwen2_5_vl_7b__dapo_clip_high_${clip_ratio_high}__ep${TOTAL_EPOCHES}_rb${ROLLOUT_BATCH_SIZE}_gb${GLOBAL_BATCH_SIZE}_mini${MINI_ROLLOUT_BATCH_SIZE}_rollout${ROLLOUT}_from_vppo_use_entopy_advantage_shaping_${use_entopy_advantage_shaping}_alpha_${entropy_alpha}_kappa_${entropy_kappa}"
+
+EXP_NAME="qwen2_5_vl_7b__dapo_clip_high_${clip_ratio_high}__ep${TOTAL_EPOCHES}_rb${ROLLOUT_BATCH_SIZE}_gb${GLOBAL_BATCH_SIZE}_mini${MINI_ROLLOUT_BATCH_SIZE}_rollout${ROLLOUT}_from_vppo_EBA_${use_entopy_advantage_shaping}_SFT_${sft_loss_coef}"
 
 CONGI_FILE="examples/configs/config_vppo.yaml"
 TRAIN_FILE="PAPOGalaxy/PAPO_ViRL39K_train"
 VAL_FILE="PAPOGalaxy/PAPO_MMK12_test"
 
 FORMAT_PROMPT="examples/format_prompt/math_perception.jinja"
-# REWARD_FUNCTION="examples/reward_function/math.py:compute_score_wo_format"
-REWARD_FUNCTION="examples/reward_function/math.py:compute_score_wo_format_length_limit"
+REWARD_FUNCTION="examples/reward_function/math.py:compute_score_wo_format"
+# REWARD_FUNCTION="examples/reward_function/math.py:compute_score_wo_format_length_limit"
 
 
 CUDA_VISIBLE_DEVICES=${CUDA_IDS} python3 -m verl.trainer.main \
@@ -61,7 +68,9 @@ CUDA_VISIBLE_DEVICES=${CUDA_IDS} python3 -m verl.trainer.main \
     worker.rollout.n=${ROLLOUT} \
     worker.actor.micro_batch_size_per_device_for_update=2 \
     worker.actor.micro_batch_size_per_device_for_experience=8 \
-    worker.reward.reward_function_kwargs.L_SAFE_STATIC=${L_SAFE_STATIC} \
     worker.actor.use_entopy_advantage_shaping=${use_entopy_advantage_shaping} \
     worker.actor.entropy_alpha=${entropy_alpha} \
     worker.actor.entropy_kappa=${entropy_kappa} \
+    algorithm.use_sft_loss=${use_sft_loss} \
+    algorithm.sft_loss_coef=${sft_loss_coef} \
+    

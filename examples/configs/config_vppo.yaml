@@ -22,11 +22,31 @@ algorithm:
   use_kl_loss: true
   kl_penalty: low_var_kl
   kl_coef: 1.0e-2
-  online_filtering: true 
+  online_filtering: true # dapo filter groups
   filter_key: accuracy
   filter_low: 0.01
-  filter_high: 0.99 
+  filter_high: 0.99
 
+  use_kl_prcp: true
+  contrastive_type: augmented
+  kl_prcp_penalty: low_var_kl
+  kl_prcp_coef: 1.0e-2
+  kl_prcp_apply_mode: all
+  incorrect_weighting: 0.1
+  aug_config:
+    patch_size: 14
+    black_prob: 0.5
+  kl_prcp_schedule: fixed
+  kl_prcp_schedule_args:
+    start_value: 1.0e-2
+    end_value: 0.0
+    annealing_ratio: 0.5
+  
+  use_aug_entropy_loss: false
+  aug_entropy_loss_coef: 0.03
+  
+  use_ori_entropy_loss: false
+  ori_entropy_loss_coef: 0.03
 
 worker:
   actor:
@@ -99,7 +119,8 @@ trainer:
   val_only: false
   val_generations_to_log: 3
   save_freq: 5  # -1 to disable
-  save_limit: 2  # -1 to disable
+  save_limit: 1  # -1 to disable
   save_model_only: false
   save_checkpoint_path: null
   load_checkpoint_path: null
+  save_best_checkpoint: true

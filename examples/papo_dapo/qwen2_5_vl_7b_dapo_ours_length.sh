@@ -68,9 +68,12 @@ CUDA_VISIBLE_DEVICES=${CUDA_IDS} python3 -m verl.trainer.main \
     worker.rollout.n=${ROLLOUT} \
     worker.actor.micro_batch_size_per_device_for_update=2 \
     worker.actor.micro_batch_size_per_device_for_experience=8 \
+    worker.reward.reward_function_kwargs.L_SAFE_STATIC=${L_SAFE_STATIC} \
     worker.actor.use_entopy_advantage_shaping=${use_entopy_advantage_shaping} \
     worker.actor.entropy_alpha=${entropy_alpha} \
     worker.actor.entropy_kappa=${entropy_kappa} \
     algorithm.use_sft_loss=${use_sft_loss} \
     algorithm.sft_loss_coef=${sft_loss_coef} \
+    worker.actor.use_sft_loss=${use_sft_loss} \
+    worker.actor.sft_loss_coef=${sft_loss_coef} \
     

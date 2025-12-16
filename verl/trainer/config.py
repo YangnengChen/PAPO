@@ -134,6 +134,14 @@ class AlgorithmConfig:
 
     use_sft_loss: bool = False
     sft_loss_coef: float = 1e-3   
+    
+    use_vppo_on_entropy: bool = False
+    top_p_entropy_tokens: float = 0.2
+    """use vppo based on entropy"""
+
+    use_vppo_on_perception: bool = False
+    top_p_perception_tokens: float = 0.2
+    """use vppo based on perception"""
 
 
 @dataclass
@@ -223,6 +231,14 @@ class PPOConfig:
         self.worker.actor.sft_loss_coef = self.algorithm.sft_loss_coef
 
         self.worker.actor.loss_avg_mode = self.algorithm.loss_avg_mode
+        
+        # Use vppo based on entropy
+        self.worker.actor.use_vppo_on_entropy = self.algorithm.use_vppo_on_entropy
+        self.worker.actor.top_p_entropy_tokens = self.algorithm.top_p_entropy_tokens
+
+        # Use vppo based on perception
+        self.worker.actor.use_vppo_on_perception = self.algorithm.use_vppo_on_perception
+        self.worker.actor.top_p_perception_tokens = self.algorithm.top_p_perception_tokens
         
     def deep_post_init(self):
         recursive_post_init(self)

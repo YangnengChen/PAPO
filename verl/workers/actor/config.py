@@ -147,6 +147,12 @@ class ActorConfig:
     entropy_alpha: float = 0.4
     entropy_kappa: float = 2.0
     """use entropy advantage shaping for training"""
+    
+    use_VD_advantage_shaping: bool = False
+    kl_alpha: float = 0.4
+    kl_kappa: float = 2.0
+    """use entropy advantage shaping for training"""
+
 
 
 @dataclass

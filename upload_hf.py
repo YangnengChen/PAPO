@@ -2,15 +2,15 @@ from huggingface_hub import HfApi
 import os
 import sys
 
-local_folder_path = "/home/hector6/PAPO/checkpoints/easy_r1/qwen2_5_vl_3b__dapo_0.26__ep2_rb384_gb128_mini128_rollout8/global_step_202/actor/huggingface"
+local_folder_path = "/home/hector6/PAPO/checkpoints/easy_r1/qwen2_5_vl_7b__dapo_clip_high_0.28_from_vppo_EBA_false_alpha_0.4_kappa_2.0_SFT_0.12_perc0.0_entropy_0.0/global_step_202/actor/huggingface"
 
 
 
-checkpoint_repo_id = "ynchen11/3B-test"
+checkpoint_repo_id = "ynchen11/qwen2_5_vl_7b__dapo_clip_high_0.28_EBA_false_SFT_0.12_perc0.0_entropy_0.0_ep2_step202"
 
 
 
-collection_slug = "qwen25-vl-3b-rl-checkpoints"  
+collection_slug = "qwen25-vl-7b-rl-checkpoints"  
 
 
 
