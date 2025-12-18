@@ -161,6 +161,9 @@ class ActorConfig:
     use_vppo_on_perception: bool = False
     top_p_perception_tokens: float = 0.2
     """use vppo based on perception"""
+    
+    use_combined_advantage_shaping: bool = False
+    shaping_kappa: float = 2.0
 
 
 @dataclass

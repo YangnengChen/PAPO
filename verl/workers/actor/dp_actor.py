@@ -560,12 +560,58 @@ class DataParallelPPOActor(BasePPOActor):
                         advantages += advantages * torch.min(self.config.entropy_alpha * entropy.detach(), advantages.abs() / self.config.entropy_kappa)
                         
                         
-                    if self.config.use_VD_advantage_shaping:
+                    elif self.config.use_VD_advantage_shaping:
                         aug_log_probs = model_inputs["aug_log_probs"]
                         log_probs_diff = (aug_log_probs - old_log_probs).clamp(-20.0, 20.0)
                         low_var_kl = (log_probs_diff.exp() - log_probs_diff - 1).contiguous()
                         low_var_kl = torch.clamp(low_var_kl, min=0.0, max=5.0)
                         advantages += advantages * torch.min(self.config.kl_alpha * low_var_kl.detach(), advantages.abs() / self.config.kl_kappa)
+                    elif self.config.use_combined_advantage_shaping:
+    
+                        # -----------------------------------------------------------
+                        # 1. 准备 Visual Dependency (KL) 指标
+                        # -----------------------------------------------------------
+                        aug_log_probs = model_inputs["aug_log_probs"]
+                        # 计算 log 概率差值并截断，防止数值溢出
+                        log_probs_diff = (aug_log_probs - old_log_probs).clamp(-20.0, 20.0)
+                        # 使用 exp(x) - x - 1 近似计算低方差 KL 散度
+                        low_var_kl = (log_probs_diff.exp() - log_probs_diff - 1).contiguous()
+                        # 截断 KL 值，防止单个样本影响过大
+                        low_var_kl = torch.clamp(low_var_kl, min=0.0, max=5.0)
+
+                        # -----------------------------------------------------------
+                        # 2. 计算加权得分 (Weighted Score)
+                        # -----------------------------------------------------------
+                        # 注意：这里我们使用 detach()，因为我们只用这些指标来调整 Advantage，
+                        # 而不需要通过 Advantage 的梯度反向传播来直接优化 Entropy 或 KL。
+                        
+                        # 权重1: 熵 (代表探索欲望)
+                        entropy_term = self.config.entropy_alpha * entropy.detach()
+                        
+                        # 权重2: Visual Dependency / KL (代表与增强图像的一致性/鲁棒性)
+                        vd_term = self.config.kl_alpha * low_var_kl.detach()
+                        
+                        # 加权求和得到总得分
+                        combined_score = entropy_term + vd_term
+
+                        # -----------------------------------------------------------
+                        # 3. 统一进行 Advantage Shaping
+                        # -----------------------------------------------------------
+                        # 这里需要一个统一的 kappa 参数。
+                        # 建议在 config 中添加 self.config.shaping_kappa，
+                        # 如果没有，暂时可以用 self.config.entropy_kappa 代替。
+                        shaping_kappa = getattr(self.config, 'shaping_kappa', self.config.entropy_kappa)
+
+                        # 计算修正项：
+                        # 逻辑是：Advantage 增强幅度不应超过 combined_score，
+                        # 同时受到 abs(advantages) / kappa 的相对约束
+                        shaping_factor = torch.min(
+                            combined_score, 
+                            advantages.abs() / shaping_kappa
+                        )
+
+                        # 应用修正
+                        advantages += advantages * shaping_factor 
 
                     pg_loss, pg_metrics = compute_policy_loss(
                         old_log_probs=old_log_probs,
